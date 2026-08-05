@@ -7,7 +7,7 @@ Every tool below is available in both the MCP server and the `kie-cli` CLI. Para
 ## Contents
 
 - **Image:** [bytedance_seedream_image](#bytedance_seedream_image), [flux_kontext_image](#flux_kontext_image), [flux2_image](#flux2_image), [gpt_image_2](#gpt_image_2), [ideogram_reframe](#ideogram_reframe), [midjourney_generate](#midjourney_generate), [nano_banana_image](#nano_banana_image), [qwen_image](#qwen_image), [recraft_remove_background](#recraft_remove_background), [topaz_upscale_image](#topaz_upscale_image), [z_image](#z_image)
-- **Video:** [bytedance_seedance_video](#bytedance_seedance_video), [gemini_omni](#gemini_omni), [grok_imagine](#grok_imagine), [hailuo_video](#hailuo_video), [happyhorse_video](#happyhorse_video), [infinitalk_lip_sync](#infinitalk_lip_sync), [kling_avatar](#kling_avatar), [kling_video](#kling_video), [omnihuman_video](#omnihuman_video), [runway_aleph_video](#runway_aleph_video), [veo3_generate_video](#veo3_generate_video), [veo3_get_1080p_video](#veo3_get_1080p_video), [wan_animate](#wan_animate), [wan_video](#wan_video)
+- **Video:** [bytedance_seedance_video](#bytedance_seedance_video), [gemini_omni](#gemini_omni), [grok_imagine](#grok_imagine), [grok_imagine_video_15](#grok_imagine_video_15), [hailuo_video](#hailuo_video), [happyhorse_video](#happyhorse_video), [infinitalk_lip_sync](#infinitalk_lip_sync), [kling_avatar](#kling_avatar), [kling_turbo_video](#kling_turbo_video), [kling_video](#kling_video), [omnihuman_video](#omnihuman_video), [runway_aleph_video](#runway_aleph_video), [veo3_generate_video](#veo3_generate_video), [veo3_get_1080p_video](#veo3_get_1080p_video), [wan_animate](#wan_animate), [wan_video](#wan_video)
 - **Audio:** [elevenlabs_tts](#elevenlabs_tts), [elevenlabs_ttsfx](#elevenlabs_ttsfx), [suno_generate_music](#suno_generate_music)
 - **Utility:** [get_task_status](#get_task_status), [list_tasks](#list_tasks), [wait_for_task](#wait_for_task)
 
@@ -279,6 +279,22 @@ Generate images and videos using xAI's Grok Imagine (4 modes: text-to-image, tex
 | `generation_mode` | `text-to-image` / `text-to-video` / `image-to-video` / `upscale` | no | Explicit mode selection (auto-detected if not provided): text-to-image, text-to-video, image-to-video, or upscale |
 | `callBackUrl` | string | no | Optional: URL for task completion notifications |
 
+### grok_imagine_video_15
+
+Generate videos with xAI Grok Imagine Video 1.5 Preview - image-to-video only, 1-7 reference images (one at 1080p), 1-15s duration, 480p/720p/1080p output. Separate model endpoint from grok_imagine
+
+#### Parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `prompt` | string | yes | Text prompt describing the motion and scene to generate (max 4096 characters) |
+| `image_urls` | array | yes | Reference image URLs (image/jpeg, image/png, image/webp, image/jpg, max 20MB each). 1-7 images; exactly 1 when resolution is 1080p |
+| `aspect_ratio` | `auto` / `1:1` / `16:9` / `9:16` / `3:2` / `2:3` | no | Aspect ratio of the video. Ignored by the API when a single image is provided (default: `"auto"`) |
+| `resolution` | `480p` / `720p` / `1080p` | no | Output resolution (1080p accepts only one input image) (default: `"480p"`) |
+| `duration` | integer | no | Video duration in seconds (1-15) (default: `8`) |
+| `nsfw_checker` | boolean | no | Content filtering toggle. Omit to use the API default (false, i.e. filtering disabled and model output returned directly) |
+| `callBackUrl` | string | no | Optional: URL for task completion notifications (uses KIE_AI_CALLBACK_URL env var if not provided) |
+
 ### hailuo_video
 
 Generate videos using Hailuo AI models (unified tool for text-to-video and image-to-video with standard/pro quality). Supports v02 (original) and v2.3 (enhanced motion/expressions, 1080P)
@@ -346,6 +362,21 @@ Generate lifelike talking avatar videos using Kuaishou Kling AI. Transforms port
 | `prompt` | string | yes | Text prompt to guide video generation (emotions, expressions, scene settings) |
 | `quality` | `standard` / `pro` | no | Video quality: standard (720P, faster) or pro (1080P, higher quality) (default: `"standard"`) |
 | `callBackUrl` | string | no | Optional: URL for task completion notifications |
+
+### kling_turbo_video
+
+Generate videos using Kling 3.0 Turbo, the faster and cheaper Kling tier - image-to-video when image_urls is provided, otherwise text-to-video. Supports 3-15s duration and 720p/1080p output
+
+#### Parameters
+
+| Parameter | Type | Required | Description |
+| --- | --- | --- | --- |
+| `prompt` | string | yes | Text prompt describing the desired video content (max 2500 characters) |
+| `image_urls` | array | no | Single source image URL for image-to-video (image/jpeg or image/png, max 10MB). Omit for text-to-video |
+| `duration` | string | no | Duration of video in seconds (3-15) (default: `"5"`) |
+| `resolution` | `720p` / `1080p` | no | Output resolution (default: `"720p"`) |
+| `aspect_ratio` | `16:9` / `9:16` / `1:1` | no | Aspect ratio of video (text-to-video mode only) (default: `"16:9"`) |
+| `callBackUrl` | string | no | Optional: URL for task completion notifications (uses KIE_AI_CALLBACK_URL env var if not provided) |
 
 ### kling_video
 

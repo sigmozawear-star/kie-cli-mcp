@@ -17,11 +17,13 @@ import {
   RecraftRemoveBackgroundRequest,
   IdeogramReframeRequest,
   KlingVideoRequest,
+  KlingTurboVideoRequest,
   HailuoVideoRequest,
   Flux2ImageRequest,
   WanAnimateRequest,
   ZImageRequest,
   GrokImagineRequest,
+  GrokImagineVideo15Request,
   InfiniTalkRequest,
   KlingAvatarRequest,
   TopazUpscaleImageRequest,
@@ -378,6 +380,8 @@ export class KieAiClient {
       apiType === "recraft-remove-background" ||
       apiType === "ideogram-reframe" ||
       apiType === "kling-3.0-video" ||
+      apiType === "kling-v3-turbo-video" ||
+      apiType === "grok-imagine-video-1-5" ||
       apiType === "hailuo" ||
       apiType === "flux2-image" ||
       apiType === "wan-animate" ||
@@ -1115,6 +1119,42 @@ export class KieAiClient {
     );
   }
 
+  async generateKlingTurboVideo(
+    request: KlingTurboVideoRequest,
+  ): Promise<KieAiResponse<TaskResponse>> {
+    // Kling 3.0 Turbo - two models, picked by the presence of a source image
+    const isImageToVideo = !!request.image_urls && request.image_urls.length > 0;
+
+    const model = isImageToVideo
+      ? "kling/v3-turbo-image-to-video"
+      : "kling/v3-turbo-text-to-video";
+
+    const input: any = {
+      prompt: request.prompt,
+      duration: request.duration || "5",
+      resolution: request.resolution || "720p",
+    };
+
+    if (isImageToVideo) {
+      input.image_urls = request.image_urls;
+    } else {
+      // aspect_ratio only exists on the text-to-video model
+      input.aspect_ratio = request.aspect_ratio || "16:9";
+    }
+
+    const jobRequest = {
+      model,
+      input,
+      callBackUrl: this.callbackUrl(request.callBackUrl),
+    };
+
+    return this.makeRequest<TaskResponse>(
+      "/jobs/createTask",
+      "POST",
+      jobRequest,
+    );
+  }
+
   async generateHailuoVideo(
     request: HailuoVideoRequest,
   ): Promise<KieAiResponse<TaskResponse>> {
@@ -1337,6 +1377,37 @@ export class KieAiClient {
 
     const jobRequest = {
       model,
+      input,
+      callBackUrl: this.callbackUrl(request.callBackUrl),
+    };
+
+    return this.makeRequest<TaskResponse>(
+      "/jobs/createTask",
+      "POST",
+      jobRequest,
+    );
+  }
+
+  async generateGrokImagineVideo15(
+    request: GrokImagineVideo15Request,
+  ): Promise<KieAiResponse<TaskResponse>> {
+    // Grok Imagine Video 1.5 Preview - single image-to-video model endpoint
+    const input: any = {
+      prompt: request.prompt,
+      image_urls: request.image_urls,
+      aspect_ratio: request.aspect_ratio || "auto",
+      resolution: request.resolution || "480p",
+      duration: request.duration ?? 8,
+    };
+
+    // Only send the content filter toggle when the caller set it, so the API
+    // default applies otherwise.
+    if (request.nsfw_checker !== undefined) {
+      input.nsfw_checker = request.nsfw_checker;
+    }
+
+    const jobRequest = {
+      model: "grok-imagine-video-1-5-preview",
       input,
       callBackUrl: this.callbackUrl(request.callBackUrl),
     };

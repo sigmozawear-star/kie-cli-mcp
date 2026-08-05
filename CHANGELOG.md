@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [3.7.0] - 2026-08-05
+
+### Added
+- **Two new Kie.ai video models**, available through both the MCP server and
+  `kie-cli` (`@felores/kie-cli` 0.4.0): Kling 3.0 Turbo and Grok Imagine Video
+  1.5 Preview.
+- **`kling_turbo_video`** wraps Kling's fast tier. It picks the model from the
+  input: `kling/v3-turbo-image-to-video` when `image_urls` is provided,
+  `kling/v3-turbo-text-to-video` otherwise. Supports 3-15s duration and
+  720p/1080p output; `aspect_ratio` applies to text-to-video only and is left
+  out of the image-to-video body. Separate from `kling_video`, which stays on
+  Kling 3.0 standard (`kling-3.0/video`) with multi-shot, native audio and
+  elements.
+- **`grok_imagine_video_15`** wraps xAI's `grok-imagine-video-1-5-preview`
+  model, a distinct endpoint from the `grok-imagine/*` family behind
+  `grok_imagine`. Image-to-video only: 1-7 reference images (exactly one at
+  1080p, validated locally), 1-15s integer duration, 480p/720p/1080p, and an
+  optional `nsfw_checker`. The content-filter flag is sent only when the caller
+  sets it, so the API's own default applies otherwise.
+
+### Changed
+- `TaskRecord.api_type` accepts `kling-v3-turbo-video` and
+  `grok-imagine-video-1-5`; both poll through `/jobs/recordInfo`, so
+  `get_task_status` and `wait_for_task` work unchanged.
+
 ## [3.6.0] - 2026-07-23
 
 ### Added

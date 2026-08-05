@@ -1025,6 +1025,76 @@ export const GrokImagineSchema = z
 
 export type GrokImagineRequest = z.infer<typeof GrokImagineSchema>;
 
+// Grok Imagine Video 1.5 Preview - xAI image-to-video on its own model endpoint
+// (grok-imagine-video-1-5-preview), separate from the grok-imagine/* family.
+export const GrokImagineVideo15Schema = z
+  .object({
+    prompt: z
+      .string()
+      .min(1)
+      .max(4096)
+      .describe(
+        "Text prompt describing the motion and scene to generate (max 4096 characters)",
+      ),
+    image_urls: z
+      .array(z.string().url())
+      .min(1)
+      .max(7)
+      .describe(
+        "Reference image URLs (image/jpeg, image/png, image/webp, image/jpg, max 20MB each). 1-7 images; exactly 1 when resolution is 1080p",
+      ),
+    aspect_ratio: z
+      .enum(["auto", "1:1", "16:9", "9:16", "3:2", "2:3"])
+      .default("auto")
+      .optional()
+      .describe(
+        "Aspect ratio of the video. Ignored by the API when a single image is provided",
+      ),
+    resolution: z
+      .enum(["480p", "720p", "1080p"])
+      .default("480p")
+      .optional()
+      .describe("Output resolution (1080p accepts only one input image)"),
+    duration: z
+      .number()
+      .int()
+      .min(1)
+      .max(15)
+      .default(8)
+      .optional()
+      .describe("Video duration in seconds (1-15)"),
+    nsfw_checker: z
+      .boolean()
+      .optional()
+      .describe(
+        "Content filtering toggle. Omit to use the API default (false, i.e. filtering disabled and model output returned directly)",
+      ),
+    callBackUrl: z
+      .string()
+      .url()
+      .optional()
+      .describe(
+        "Optional: URL for task completion notifications (uses KIE_AI_CALLBACK_URL env var if not provided)",
+      ),
+  })
+  .refine(
+    (data) => {
+      // 1080p is limited to a single input image.
+      if (data.resolution === "1080p") {
+        return data.image_urls.length === 1;
+      }
+      return true;
+    },
+    {
+      message: "resolution '1080p' supports exactly one image in image_urls",
+      path: ["image_urls"],
+    },
+  );
+
+export type GrokImagineVideo15Request = z.infer<
+  typeof GrokImagineVideo15Schema
+>;
+
 // InfiniTalk - MeiGen-AI lip sync video generator (image + audio to talking video)
 export const InfiniTalkSchema = z.object({
   image_url: z
@@ -1861,6 +1931,64 @@ export const KlingVideoSchema = z
 
 export type KlingVideoRequest = z.infer<typeof KlingVideoSchema>;
 
+// Kling 3.0 Turbo - faster/cheaper Kling tier. Two models behind one tool:
+// kling/v3-turbo-image-to-video (image_urls present) and
+// kling/v3-turbo-text-to-video (no image_urls).
+export const KlingTurboVideoSchema = z
+  .object({
+    prompt: z
+      .string()
+      .min(1)
+      .max(2500)
+      .describe(
+        "Text prompt describing the desired video content (max 2500 characters)",
+      ),
+    image_urls: z
+      .array(z.string().url())
+      .min(1)
+      .max(1)
+      .optional()
+      .describe(
+        "Single source image URL for image-to-video (image/jpeg or image/png, max 10MB). Omit for text-to-video",
+      ),
+    duration: z
+      .string()
+      .refine(
+        (val) => {
+          const num = parseInt(val);
+          return !isNaN(num) && num >= 3 && num <= 15;
+        },
+        {
+          message: "Duration must be a string number between 3 and 15",
+        },
+      )
+      .default("5")
+      .optional()
+      .describe("Duration of video in seconds (3-15)"),
+    resolution: z
+      .enum(["720p", "1080p"])
+      .default("720p")
+      .optional()
+      .describe("Output resolution"),
+    aspect_ratio: z
+      .enum(["16:9", "9:16", "1:1"])
+      .default("16:9")
+      .optional()
+      .describe("Aspect ratio of video (text-to-video mode only)"),
+    callBackUrl: z
+      .string()
+      .url()
+      .optional()
+      .describe(
+        "Optional: URL for task completion notifications (uses KIE_AI_CALLBACK_URL env var if not provided)",
+      ),
+  })
+  .describe(
+    "Kling 3.0 Turbo video generation (image-to-video when image_urls is set, otherwise text-to-video)",
+  );
+
+export type KlingTurboVideoRequest = z.infer<typeof KlingTurboVideoSchema>;
+
 // Hailuo Video - Unified tool for text-to-video and image-to-video (standard/pro quality)
 // Supports Hailuo 02 and Hailuo 2.3 versions
 export const HailuoVideoSchema = z
@@ -2117,11 +2245,13 @@ export interface TaskRecord {
     | "recraft-remove-background"
     | "ideogram-reframe"
     | "kling-3.0-video"
+    | "kling-v3-turbo-video"
     | "hailuo"
     | "flux2-image"
     | "wan-animate"
     | "z-image"
     | "grok-imagine"
+    | "grok-imagine-video-1-5"
     | "infinitalk"
     | "kling-avatar"
     | "topaz-upscale"

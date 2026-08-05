@@ -9,11 +9,13 @@ import { getTaskStatusTool } from "./get_task_status.js";
 import { gptImage2Tool } from "./gpt_image_2.js";
 import { geminiOmniTool } from "./gemini_omni.js";
 import { grokImagineTool } from "./grok_imagine.js";
+import { grokImagineVideo15Tool } from "./grok_imagine_video_15.js";
 import { hailuoVideoTool } from "./hailuo_video.js";
 import { happyhorseVideoTool } from "./happyhorse_video.js";
 import { ideogramReframeTool } from "./ideogram_reframe.js";
 import { infinitalkLipSyncTool } from "./infinitalk_lip_sync.js";
 import { klingAvatarTool } from "./kling_avatar.js";
+import { klingTurboVideoTool } from "./kling_turbo_video.js";
 import { klingVideoTool } from "./kling_video.js";
 import { listTasksTool } from "./list_tasks.js";
 import { midjourneyGenerateTool } from "./midjourney_generate.js";
@@ -49,11 +51,13 @@ export const TOOL_REGISTRY: ToolDef[] = [
   geminiOmniTool,
   gptImage2Tool,
   grokImagineTool,
+  grokImagineVideo15Tool,
   hailuoVideoTool,
   happyhorseVideoTool,
   ideogramReframeTool,
   infinitalkLipSyncTool,
   klingAvatarTool,
+  klingTurboVideoTool,
   klingVideoTool,
   listTasksTool,
   midjourneyGenerateTool,

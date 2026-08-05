@@ -1,6 +1,6 @@
 # Kie.ai Endpoints & MCP Tools Mapping
 
-> **Last Updated**: 2026-06-05
+> **Last Updated**: 2026-08-05
 > **Purpose**: Track Kie.ai API endpoints and their MCP/CLI tool implementation status.
 
 ## Overview
@@ -82,7 +82,9 @@ The server only treats `code === 200` in the response body as success (HTTP 200 
 | `happyhorse_video` | HappyHorse 1.0 (T2V/I2V/R2V/video-edit) | ✅ |
 | `hailuo_video` | Hailuo 02 / 2.3 (standard/pro) | ✅ |
 | `kling_video` | Kling 3.0 (text/image-to-video, multi-shot, native audio) | ✅ |
+| `kling_turbo_video` | Kling 3.0 Turbo (text/image-to-video, fast tier) | ✅ |
 | `grok_imagine` | xAI Grok Imagine (text/image to image/video, upscale) | ✅ |
+| `grok_imagine_video_15` | xAI Grok Imagine Video 1.5 Preview (image-to-video) | ✅ |
 | `infinitalk_lip_sync` | MeiGen-AI InfiniTalk (lip-sync talking video) | ✅ |
 | `kling_avatar` | Kuaishou Kling AI Avatar (talking avatar) | ✅ |
 | `omnihuman_video` | ByteDance OmniHuman 1.5 (image + audio avatar video) | ✅ |
@@ -149,6 +151,14 @@ Kie.ai credits, where 1 credit is about $0.005. Pricing changes often; verify cu
 ---
 
 ## Changelog
+
+### 2026-08-05
+- Added `kling_turbo_video` (Kling 3.0 Turbo, `kling/v3-turbo-image-to-video` +
+  `kling/v3-turbo-text-to-video`) and `grok_imagine_video_15` (xAI Grok Imagine
+  Video 1.5 Preview, `grok-imagine-video-1-5-preview`). Both create tasks on
+  `/jobs/createTask` and poll on `/jobs/recordInfo`. Contracts saved in
+  [kie/kling_v3-turbo.md](./kie/kling_v3-turbo.md) and
+  [kie/grok-imagine_video-1-5-preview.md](./kie/grok-imagine_video-1-5-preview.md).
 
 ### 2026-06-05 (later)
 - `wait_for_task` now polls the Kie API directly by default and streams MCP
