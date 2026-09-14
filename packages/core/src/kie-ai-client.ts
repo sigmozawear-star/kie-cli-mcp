@@ -12,7 +12,7 @@ import {
   ByteDanceSeedreamImageRequest,
   QwenImageRequest,
   MidjourneyGenerateRequest,
-  GptImage2Request,
+  GptImage2Request, GptImage25Request,
   FluxKontextImageRequest,
   RecraftRemoveBackgroundRequest,
   IdeogramReframeRequest,
@@ -389,7 +389,7 @@ export class KieAiClient {
        apiType === "happyhorse-video" ||
        apiType === "omnihuman-video" ||
        apiType === "gemini-omni-video" ||
-      apiType === "gpt-image-2"
+      apiType === "gpt-image-2" || apiType === "gpt-image-2-5"
     ) {
       return this.makeRequest<any>(`/jobs/recordInfo?taskId=${taskId}`, "GET");
     } else if (apiType === "runway-aleph-video") {
@@ -523,13 +523,15 @@ export class KieAiClient {
   async generateByteDanceSeedanceVideo(
     request: ByteDanceSeedanceVideoRequest,
   ): Promise<KieAiResponse<TaskResponse>> {
-    // Seedance 2.0 variants
+        // Seedance 2.5 (newest) plus the Seedance 2.0 variants
     const model =
-      request.mode === "mini"
-        ? "bytedance/seedance-2-mini"
-        : request.mode === "fast"
-          ? "bytedance/seedance-2-fast"
-          : "bytedance/seedance-2";
+      request.mode === "2.5"
+        ? "bytedance/seedance-2-5"
+        : request.mode === "mini"
+          ? "bytedance/seedance-2-mini"
+          : request.mode === "fast"
+            ? "bytedance/seedance-2-fast"
+            : "bytedance/seedance-2";
 
     const input: any = {
       prompt: request.prompt,
@@ -942,7 +944,34 @@ export class KieAiClient {
     );
   }
 
-  async generateHappyHorseVideo(
+    async generateGptImage25(
+    request: GptImage25Request,
+  ): Promise<KieAiResponse<TaskResponse>> {
+    const hasInputUrls = request.input_urls && request.input_urls.length > 0;
+    const mode = hasInputUrls ? "image-to-image" : "text-to-image";
+    const model = `gpt-image-2-5-sunburst-${mode}`;
+
+    const input: any = {
+      prompt: request.prompt,
+    };
+    if (hasInputUrls) input.input_urls = request.input_urls;
+    if (request.aspect_ratio) input.aspect_ratio = request.aspect_ratio;
+    if (request.resolution) input.resolution = request.resolution;
+
+    const jobRequest = {
+      model,
+      input,
+      callBackUrl: this.callbackUrl(request.callBackUrl),
+    };
+
+    return this.makeRequest<TaskResponse>(
+      "/jobs/createTask",
+      "POST",
+      jobRequest,
+    );
+  }
+
+async generateHappyHorseVideo(
     request: HappyHorseVideoRequest,
   ): Promise<KieAiResponse<TaskResponse>> {
     const mode =
