@@ -458,11 +458,11 @@ export const ByteDanceSeedanceVideoSchema = z
       .describe("Text prompt for video generation (3-20000 characters)"),
     // Mode: standard, fast, or the lower-cost Seedance 2.0 Mini
     mode: z
-      .enum(["standard", "fast", "mini"])
+      .enum(["standard", "fast", "mini", "2.5"])
       .default("standard")
       .optional()
       .describe(
-        "Generation mode: standard (higher quality), fast (iterative workflows), or mini (lowest-cost, fastest workflow)",
+        'Model/mode: standard, fast or mini select Seedance 2.0 variants (higher quality / iterative / lowest-cost). Use "2.5" for Seedance 2.5, the newest model - the only mode that supports 1080p and durations above 15s.',
       ),
     // Frame control
     first_frame_url: z
@@ -498,18 +498,18 @@ export const ByteDanceSeedanceVideoSchema = z
       .optional()
       .describe("Aspect ratio of the generated video"),
     resolution: z
-      .enum(["480p", "720p"])
+      .enum(["480p", "720p", "1080p"])
       .default("720p")
       .optional()
-      .describe("Video resolution: 480p for faster, 720p for balance"),
+      .describe('Video resolution: 480p for faster, 720p for balance. 1080p requires mode "2.5".'),
     duration: z
       .number()
       .int()
       .min(4)
-      .max(15)
+      .max(30)
       .default(5)
       .optional()
-      .describe("Duration of video in seconds (4-15)"),
+      .describe('Duration of video in seconds. Seedance 2.0 modes accept 4-15; durations above 15 (up to 30) require mode "2.5".'),
     // Audio & safety
     generate_audio: z
       .boolean()
@@ -1630,6 +1630,40 @@ export type MidjourneyGenerateRequest = z.infer<
 >;
 export type GptImage2Request = z.infer<typeof GptImage2Schema>;
 
+// GPT Image 2.5 (Sunburst) - precision-oriented OpenAI image model
+export const GptImage25Schema = z.object({
+  prompt: z
+    .string()
+    .min(1)
+    .max(30000)
+    .describe("Text prompt describing the desired image (max 30000 characters)"),
+  input_urls: z
+    .array(z.string().url())
+    .max(16)
+    .optional()
+    .describe(
+      "Array of up to 16 image URLs for image-to-image mode. Omit for text-to-image.",
+    ),
+  aspect_ratio: z
+    .enum(["auto", "1:1", "9:16", "16:9", "4:3", "3:4"])
+    .default("auto")
+    .optional()
+    .describe("Image aspect ratio"),
+  resolution: z
+    .enum(["1K", "2K", "4K"])
+    .default("1K")
+    .optional()
+    .describe("Output resolution"),
+  callBackUrl: z
+    .string()
+    .url()
+    .optional()
+    .describe(
+      "Optional: URL for task completion notifications (uses KIE_AI_CALLBACK_URL env var if not provided)",
+    ),
+});
+export type GptImage25Request = z.infer<typeof GptImage25Schema>;
+
 // Flux Kontext Image - Unified text-to-image and image editing
 export const FluxKontextImageSchema = z
   .object({
@@ -2240,7 +2274,7 @@ export interface TaskRecord {
     | "bytedance-seedream-image"
     | "qwen-image"
     | "midjourney"
-    | "gpt-image-2"
+    | "gpt-image-2" | "gpt-image-2-5"
     | "flux-kontext-image"
     | "recraft-remove-background"
     | "ideogram-reframe"
