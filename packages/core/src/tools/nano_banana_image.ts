@@ -5,7 +5,7 @@ import type { ToolDef, ToolContext, ToolResult } from "./types.js";
 export const nanoBananaImageTool: ToolDef<typeof NanoBananaImageSchema> = {
   name: "nano_banana_image",
   description:
-    "Generate and edit images using Nano Banana 2 or the faster 1K Nano Banana 2 Lite. Nano Banana 2 supports 4K, 14 references, and Google Search grounding; Lite supports up to 10 references.",
+    "Generate and edit images using Nano Banana 2, the newer Nano Banana 2.1 (model nano-banana-2-1), or the faster 1K Nano Banana 2 Lite. Nano Banana 2 supports 4K, 14 references, and Google Search grounding; Lite supports up to 10 references.",
   category: "image",
   schema: NanoBananaImageSchema,
   async run(args, ctx: ToolContext): Promise<ToolResult> {
@@ -41,7 +41,7 @@ export const nanoBananaImageTool: ToolDef<typeof NanoBananaImageSchema> = {
                 success: true,
                 response: response,
                 mode: modeDescription,
-                message: `${request.model === "nano-banana-2-lite" ? "Nano Banana 2 Lite" : "Nano Banana 2"} image ${modeDescription} initiated`,
+                message: `${request.model === "nano-banana-2-lite" ? "Nano Banana 2 Lite" : request.model === "nano-banana-2-1" ? "Nano Banana 2.1" : "Nano Banana 2"} image ${modeDescription} initiated`,
               },
               null,
               2,
@@ -53,7 +53,7 @@ export const nanoBananaImageTool: ToolDef<typeof NanoBananaImageSchema> = {
       return ctx.formatError("nano_banana_image", error, {
         prompt:
           "Required for generate/edit modes: text description (max 5000 chars)",
-        model: 'Optional: "nano-banana-2" (default) or "nano-banana-2-lite"',
+        model: 'Optional: "nano-banana-2" (default), "nano-banana-2-1" (newest) or "nano-banana-2-lite"',
         image_input:
           "Optional for edit mode: array of up to 14 reference image URLs",
         output_format: 'Optional: "png" or "jpg"',
