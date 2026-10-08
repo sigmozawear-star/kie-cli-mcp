@@ -5,11 +5,11 @@ import { z } from "zod";
 export const NanoBananaImageSchema = z
   .object({
     model: z
-      .enum(["nano-banana-2", "nano-banana-2-lite"])
+      .enum(["nano-banana-2", "nano-banana-2-lite", "nano-banana-2-1"])
       .default("nano-banana-2")
       .optional()
       .describe(
-        "Nano Banana model: nano-banana-2 supports up to 4K and 14 references; nano-banana-2-lite is the faster 1K model with up to 10 references",
+        "Nano Banana model: nano-banana-2 supports up to 4K and 14 references; nano-banana-2-lite is the faster 1K model with up to 10 references; nano-banana-2-1 is the newest model (stronger subject consistency and mask-style edits), up to 4K and 10 references",
       ),
     // Text-to-image parameters
     prompt: z
