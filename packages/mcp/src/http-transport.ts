@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import express, { type Request, type Response } from "express";
+import express, { type Express, type Request, type Response } from "express";
 import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
@@ -9,6 +9,9 @@ export interface HttpTransportOptions {
   // transport), wired to the shared client/db context.
   createServer: () => Server;
   version: string;
+  // Extra unauthenticated routes (e.g. the widget upload endpoint, which is
+  // guarded by its own one-time tickets). Receives this server's public origin.
+  registerRoutes?: (app: Express, publicBaseUrl: string) => void;
 }
 
 // Streamable HTTP transport (MCP spec 2025-11-25): a single /mcp endpoint that
@@ -50,6 +53,16 @@ export function startHttpServer(opts: HttpTransportOptions): void {
       version: opts.version,
     });
   });
+
+  // Public origin used in widget upload URLs / CSP connectDomains.
+  const publicBaseUrl = (
+    process.env.KIE_MCP_PUBLIC_URL ||
+    process.env.RENDER_EXTERNAL_URL ||
+    (allowedHosts[0]
+      ? `https://${allowedHosts[0]}`
+      : `http://${isLoopbackHost ? "127.0.0.1" : host}:${port}`)
+  ).replace(/\/+$/, "");
+  opts.registerRoutes?.(app, publicBaseUrl);
 
   // Bearer-token auth for the MCP endpoint (only enforced when a token is set).
   const requireAuth = (req: Request, res: Response): boolean => {
