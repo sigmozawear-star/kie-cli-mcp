@@ -69,6 +69,8 @@ class KieAiMcpServer {
       "happyhorse_video",
       "hailuo_video",
       "kling_video",
+      "kling_4_video",
+      "wan_3_video",
       "runway_aleph_video",
       "grok_imagine", // xAI multimodal: text-to-image/video, image-to-video, upscale
       "infinitalk_lip_sync", // MeiGen-AI lip sync video generator
