@@ -18,6 +18,7 @@ import { infinitalkLipSyncTool } from "./infinitalk_lip_sync.js";
 import { klingAvatarTool } from "./kling_avatar.js";
 import { klingTurboVideoTool } from "./kling_turbo_video.js";
 import { klingVideoTool } from "./kling_video.js";
+import { kling4VideoTool } from "./kling_4_video.js";
 import { listTasksTool } from "./list_tasks.js";
 import { midjourneyGenerateTool } from "./midjourney_generate.js";
 import { nanoBananaImageTool } from "./nano_banana_image.js";
@@ -32,6 +33,7 @@ import { veo3Get1080pVideoTool } from "./veo3_get_1080p_video.js";
 import { waitForTaskTool } from "./wait_for_task.js";
 import { wanAnimateTool } from "./wan_animate.js";
 import { wanVideoTool } from "./wan_video.js";
+import { wan3VideoTool } from "./wan_3_video.js";
 import { zImageTool } from "./z_image.js";
 
 export * from "./types.js";
@@ -61,6 +63,7 @@ export const TOOL_REGISTRY: ToolDef[] = [
   klingAvatarTool,
   klingTurboVideoTool,
   klingVideoTool,
+  kling4VideoTool,
   listTasksTool,
   midjourneyGenerateTool,
   nanoBananaImageTool,
@@ -75,6 +78,7 @@ export const TOOL_REGISTRY: ToolDef[] = [
   waitForTaskTool,
   wanAnimateTool,
   wanVideoTool,
+  wan3VideoTool,
   zImageTool,
 ];
 
