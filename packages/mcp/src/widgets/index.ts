@@ -74,11 +74,11 @@ export const ShowCandidatesSchema = z.object({
   allow_note: z
     .boolean()
     .default(true)
-    .describe("Show the free-text 'inaczej: …' field"),
+    .describe("Show the free-text 'something else: …' field"),
   allow_none: z
     .boolean()
     .default(true)
-    .describe("Show the 'Żadne — przerysuj' button"),
+    .describe("Show the 'None — redraw' button"),
 });
 
 export const MediaUploadWidgetSchema = z.object({
@@ -227,9 +227,9 @@ export class WidgetHub {
     return [
       {
         name: "show_candidates",
-        title: "Pokaż kandydatów do wyboru",
+        title: "Show candidates to choose from",
         description:
-          "Render an interactive picker in the chat: a grid of candidate images (9:16) or videos with a 'Wybieram <id>' button under each, an 'inaczej: …' free-text field and a 'Żadne — przerysuj' button. " +
+          "Render an interactive picker in the chat: a grid of candidate images (9:16) or videos with a 'Choose <id>' button under each, a 'something else: …' free-text field and a 'None — redraw' button (UI in English). " +
           "The user's click is sent back as a USER MESSAGE in exactly one of these forms: 'WYBÓR <decision_id>: <id>' · 'WYBÓR <decision_id>: inaczej — <tekst>' · 'WYBÓR <decision_id>: żadne — przerysuj'. " +
           "After calling this tool, END YOUR TURN and wait for that message; do not poll or call other tools to wait. Candidate URLs must be public (e.g. Kie result URLs).",
         inputSchema: toInputJsonSchema(ShowCandidatesSchema),
@@ -238,7 +238,7 @@ export class WidgetHub {
       },
       {
         name: "media_upload_widget",
-        title: "Wgraj pliki z komputera",
+        title: "Upload files from your device",
         description:
           "Render an upload widget so the user can send images/videos from their device. Files are hosted (readable by Kie) and the widget then sends a USER MESSAGE 'UPLOAD <decision_id>: <url1> · <url2> …'. " +
           "Use those URLs as input_urls/image_urls for generation tools. After calling, END YOUR TURN and wait for the UPLOAD message.",
@@ -248,9 +248,9 @@ export class WidgetHub {
       },
       {
         name: "show_result",
-        title: "Pokaż wyniki zadań Kie",
+        title: "Show Kie task results",
         description:
-          "Show finished Kie task results (image/video) in the chat with 'Pobierz' (download) and 'Użyj jako referencję' buttons. The latter sends a USER MESSAGE 'REF <task_id>: <url>' — use that URL as a reference input for the next generation.",
+          "Show finished Kie task results (image/video) in the chat with 'Download' and 'Use as reference' buttons. The latter sends a USER MESSAGE 'REF <task_id>: <url>' — use that URL as a reference input for the next generation.",
         inputSchema: toInputJsonSchema(ShowResultSchema),
         annotations: { readOnlyHint: true, openWorldHint: false },
         _meta: ui("result"),
@@ -391,7 +391,7 @@ export class WidgetHub {
     );
     const text =
       `Results shown in widget.\n${lines.join("\n")}\n` +
-      `If the user clicks 'Użyj jako referencję' you will receive 'REF <task_id>: <url>'.`;
+      `If the user clicks 'Use as reference' you will receive 'REF <task_id>: <url>'.`;
     return { content: [{ type: "text" as const, text }], structuredContent: { results } };
   }
 
