@@ -248,6 +248,8 @@ export const getTaskStatusTool: ToolDef<typeof GetTaskStatusSchema> = {
           "veo3-fast",
           "veo3-1080p",
           "kling-3.0-video",
+          "kling-4.0-video",
+          "wan-3.0-video",
           "bytedance-seedance-video",
           "wan-video",
           "happyhorse-video",
