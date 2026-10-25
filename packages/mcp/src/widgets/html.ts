@@ -11,7 +11,7 @@
 // the HTML/CSS/JS below.
 
 export const WIDGET_HTML_TEMPLATE = String.raw`<!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -112,7 +112,7 @@ button.primary:disabled { opacity: 1; }
 </style>
 </head>
 <body>
-<div id="app"><div class="loading">Ładowanie…</div></div>
+<div id="app"><div class="loading">Loading…</div></div>
 <script>
 (function () {
   "use strict";
@@ -133,7 +133,7 @@ button.primary:disabled { opacity: 1; }
       pending[id] = { resolve: resolve, reject: reject };
       post({ jsonrpc: "2.0", id: id, method: method, params: params || {} });
       setTimeout(function () {
-        if (pending[id]) { delete pending[id]; reject(new Error("Brak odpowiedzi hosta (" + method + ")")); }
+        if (pending[id]) { delete pending[id]; reject(new Error("No response from host (" + method + ")")); }
       }, timeoutMs || 30000);
     });
   }
@@ -147,7 +147,7 @@ button.primary:disabled { opacity: 1; }
       var p = pending[m.id];
       if (!p) return;
       delete pending[m.id];
-      if (m.error) p.reject(new Error(m.error.message || "Błąd hosta"));
+      if (m.error) p.reject(new Error(m.error.message || "Host error"));
       else p.resolve(m.result);
       return;
     }
@@ -170,7 +170,7 @@ button.primary:disabled { opacity: 1; }
         render();
         break;
       case "ui/notifications/tool-cancelled":
-        showFatal("Wywołanie narzędzia zostało anulowane.");
+        showFatal("The tool call was cancelled.");
         break;
       case "ui/notifications/host-context-changed":
         host.ctx = Object.assign({}, host.ctx, m.params || {});
@@ -242,7 +242,7 @@ button.primary:disabled { opacity: 1; }
       render();
     }).catch(function (e) {
       setupAutoResize();
-      if (!data.args && !data.result) showFatal("Nie udało się połączyć z hostem: " + e.message);
+      if (!data.args && !data.result) showFatal("Could not connect to the host: " + e.message);
     });
   }
 
@@ -283,7 +283,7 @@ button.primary:disabled { opacity: 1; }
   function openLink(url) {
     if (host.ready) {
       return request("ui/open-link", { url: url }).then(function (r) {
-        if (r && r.isError) throw new Error("odmowa");
+        if (r && r.isError) throw new Error("refused");
       }).catch(function () { try { window.open(url, "_blank", "noopener"); } catch (e) {} });
     }
     try { window.open(url, "_blank", "noopener"); } catch (e) {}
@@ -292,14 +292,14 @@ button.primary:disabled { opacity: 1; }
 
   function sendChat(text) {
     return request("ui/message", { role: "user", content: [{ type: "text", text: text }] }, 30000)
-      .then(function (r) { if (r && r.isError) throw new Error("Host odrzucił wiadomość"); return r; });
+      .then(function (r) { if (r && r.isError) throw new Error("Host rejected the message"); return r; });
   }
 
   function mediaEl(url, kind, tagText) {
     var box = h("div", { class: "media" });
     var fail = function () {
-      box.replaceChildren(h("div", { class: "err" }, ["Nie można wczytać podglądu. ",
-        h("a", { href: "#", text: "Otwórz", onclick: function (e) { e.preventDefault(); openLink(url); } })]));
+      box.replaceChildren(h("div", { class: "err" }, ["Preview unavailable. ",
+        h("a", { href: "#", text: "Open", onclick: function (e) { e.preventDefault(); openLink(url); } })]));
     };
     var el;
     if (kind === "video") {
@@ -340,7 +340,7 @@ button.primary:disabled { opacity: 1; }
         var s = $app().querySelector(".status");
         if (s) {
           s.className = "status bad";
-          s.replaceChildren("Nie udało się wysłać (" + e.message + "). Skopiuj i wklej do czatu: ", h("code", { text: text }));
+          s.replaceChildren("Could not send (" + e.message + "). Copy and paste into the chat: ", h("code", { text: text }));
         }
       });
     }
@@ -353,8 +353,8 @@ button.primary:disabled { opacity: 1; }
         mediaEl(c.url, kind, id),
         c.label ? h("div", { class: "label", text: String(c.label) }) : null,
         h("button", {
-          class: "pick" + (chosen ? " primary" : ""), disabled: locked, title: "Wybieram " + id,
-          text: chosen ? "Wybrano " + id : "Wybieram " + id,
+          class: "pick" + (chosen ? " primary" : ""), disabled: locked, title: "Choose " + id,
+          text: chosen ? "Chosen: " + id : "Choose " + id,
           onclick: function () { finish("WYBÓR " + decision + ": " + id, id); }
         })
       ]);
@@ -362,7 +362,7 @@ button.primary:disabled { opacity: 1; }
 
     var note = null;
     if (allowNote || allowNone) {
-      var input = allowNote ? h("input", { type: "text", placeholder: "inaczej: …", "aria-label": "inaczej", disabled: locked, maxlength: "2000" }) : null;
+      var input = allowNote ? h("input", { type: "text", placeholder: "something else: …", "aria-label": "something else", disabled: locked, maxlength: "2000" }) : null;
       var sendNote = function () {
         var t = oneLine(input && input.value);
         if (!t) { if (input) input.focus(); return; }
@@ -371,13 +371,13 @@ button.primary:disabled { opacity: 1; }
       if (input) input.addEventListener("keydown", function (e) { if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); sendNote(); } });
       note = h("div", { class: "row" }, [
         input,
-        allowNote ? h("button", { disabled: locked, text: "Wyślij", onclick: sendNote }) : null,
-        allowNone ? h("button", { disabled: locked, text: "Żadne — przerysuj",
+        allowNote ? h("button", { disabled: locked, text: "Send", onclick: sendNote }) : null,
+        allowNone ? h("button", { disabled: locked, text: "None — redraw",
           onclick: function () { finish("WYBÓR " + decision + ": żadne — przerysuj", null); } }) : null
       ]);
     }
-    if (cand.sent) { statusBox.className = "status"; statusBox.replaceChildren("Wysłano: ", h("code", { text: cand.sent })); }
-    else if (cand.busy) { statusBox.className = "status"; statusBox.textContent = "Wysyłanie…"; }
+    if (cand.sent) { statusBox.className = "status"; statusBox.replaceChildren("Sent: ", h("code", { text: cand.sent })); }
+    else if (cand.busy) { statusBox.className = "status"; statusBox.textContent = "Sending…"; }
 
     mount([
       a.question ? h("p", { class: "q", text: String(a.question) }) : null,
@@ -430,13 +430,13 @@ button.primary:disabled { opacity: 1; }
         var s = res && res.structuredContent;
         if (!res || res.isError || !s) {
           var t = res && res.content && res.content[0] && res.content[0].text;
-          throw new Error(t || "upload przez narzędzie nie powiódł się");
+          throw new Error(t || "upload via host failed");
         }
         i++;
         item.progress = Math.min(0.98, i / total);
         drawUpload();
         if (s.url) return s;
-        if (i >= total) throw new Error("brak URL po ostatniej części");
+        if (i >= total) throw new Error("no URL after the last chunk");
         return next();
       });
     }
@@ -453,7 +453,7 @@ button.primary:disabled { opacity: 1; }
     p.then(function (res) {
       item.state = "ok"; item.progress = 1; item.url = res.url; drawUpload(); maybeAutoSend(cfg);
     }).catch(function (e) {
-      item.state = "bad"; item.error = e.message === "network" ? "brak połączenia z serwerem uploadu" : e.message; drawUpload();
+      item.state = "bad"; item.error = e.message === "network" ? "cannot reach the upload server" : e.message; drawUpload();
     });
   }
 
@@ -463,10 +463,10 @@ button.primary:disabled { opacity: 1; }
     var live = up.files.filter(function (f) { return f.state !== "bad"; }).length;
     Array.prototype.slice.call(fileList).forEach(function (file) {
       var item = { file: file, state: "new", progress: 0, url: null, error: null, preview: null, kind: kindOf(file) };
-      if (live >= max) { item.state = "bad"; item.error = "limit " + max + " plik(ów)"; }
-      else if (!item.kind || accept.indexOf(item.kind) < 0) { item.state = "bad"; item.error = "niedozwolony typ pliku"; }
-      else if (item.kind === "image" && file.size > cfg.max_image_bytes) { item.state = "bad"; item.error = "obraz > " + fmtBytes(cfg.max_image_bytes); }
-      else if (item.kind === "video" && file.size > cfg.max_video_bytes) { item.state = "bad"; item.error = "wideo > " + fmtBytes(cfg.max_video_bytes); }
+      if (live >= max) { item.state = "bad"; item.error = "limit of " + max + " file(s)"; }
+      else if (!item.kind || accept.indexOf(item.kind) < 0) { item.state = "bad"; item.error = "file type not allowed"; }
+      else if (item.kind === "image" && file.size > cfg.max_image_bytes) { item.state = "bad"; item.error = "image > " + fmtBytes(cfg.max_image_bytes); }
+      else if (item.kind === "video" && file.size > cfg.max_video_bytes) { item.state = "bad"; item.error = "video > " + fmtBytes(cfg.max_video_bytes); }
       try { item.preview = URL.createObjectURL(file); } catch (e) {}
       up.files.push(item);
       if (item.state === "new") { live++; startUpload(cfg, item); }
@@ -511,10 +511,10 @@ button.primary:disabled { opacity: 1; }
     var acceptAttr = cfg.accept.map(function (k) { return k + "/*"; }).join(",");
     var input = h("input", { type: "file", class: "hidden", accept: acceptAttr, multiple: cfg.max_files > 1 });
     input.addEventListener("change", function () { addFiles(cfg, input.files); input.value = ""; });
-    var kinds = cfg.accept.map(function (k) { return k === "image" ? "obrazy" : "wideo"; }).join(" i ");
+    var kinds = cfg.accept.map(function (k) { return k === "image" ? "images" : "videos"; }).join(" and ");
     var drop = h("div", { class: "drop", role: "button", tabindex: "0", "aria-disabled": locked ? "true" : "false" }, [
-      h("strong", { text: cfg.ready ? (locked ? "Wysłano" : "Kliknij, aby wybrać pliki, albo upuść je tutaj") : "Przygotowywanie uploadu…" }),
-      h("span", { class: "muted", text: kinds + " · maks. " + cfg.max_files + " plik(ów) · obraz do " + fmtBytes(cfg.max_image_bytes) + ", wideo do " + fmtBytes(cfg.max_video_bytes) })
+      h("strong", { text: cfg.ready ? (locked ? "Sent" : "Click to choose files, or drop them here") : "Preparing upload…" }),
+      h("span", { class: "muted", text: kinds + " · max " + cfg.max_files + " file(s) · images up to " + fmtBytes(cfg.max_image_bytes) + ", videos up to " + fmtBytes(cfg.max_video_bytes) })
     ]);
     if (!locked) {
       drop.addEventListener("click", function () { input.click(); });
@@ -527,18 +527,18 @@ button.primary:disabled { opacity: 1; }
       var media = h("div", { class: "media" });
       if (f.preview && f.kind === "video") media.appendChild(h("video", { src: f.preview, muted: true, playsinline: true, preload: "metadata" }));
       else if (f.preview && f.kind === "image") media.appendChild(h("img", { src: f.preview, alt: f.file.name }));
-      var st = f.state === "ok" ? h("div", { class: "fstate ok", text: "Wgrano ✓" + (f.via === "tools" ? " (przez host)" : "") })
-        : f.state === "bad" ? h("div", { class: "fstate bad", text: "Błąd: " + f.error })
-        : h("div", { class: "fstate", text: "Wgrywanie… " + Math.round(f.progress * 100) + "%" });
+      var st = f.state === "ok" ? h("div", { class: "fstate ok", text: "Uploaded ✓" + (f.via === "tools" ? " (via host)" : "") })
+        : f.state === "bad" ? h("div", { class: "fstate bad", text: "Error: " + f.error })
+        : h("div", { class: "fstate", text: "Uploading… " + Math.round(f.progress * 100) + "%" });
       return h("div", { class: "card" }, [media, h("div", { class: "fname", text: f.file.name + " · " + fmtBytes(f.file.size) }),
         h("div", { class: "bar" }, [h("i", { style: { width: Math.round(f.progress * 100) + "%" } })]), st]);
     })) : null;
     var n = doneUrls().length;
     var sendBtn = h("button", { class: "primary", disabled: locked || !n || inFlight(),
-      text: up.busy ? "Wysyłanie…" : "Wyślij do czatu" + (n ? " (" + n + ")" : ""), onclick: function () { sendUploads(cfg); } });
+      text: up.busy ? "Sending…" : "Send to chat" + (n ? " (" + n + ")" : ""), onclick: function () { sendUploads(cfg); } });
     var status = null;
-    if (up.sent) status = h("div", { class: "status" }, ["Wysłano: ", h("code", { text: up.sent })]);
-    else if (up.err) status = h("div", { class: "status bad" }, ["Nie udało się wysłać (" + up.err.msg + "). Skopiuj i wklej do czatu: ", h("code", { text: up.err.text })]);
+    if (up.sent) status = h("div", { class: "status" }, ["Sent: ", h("code", { text: up.sent })]);
+    else if (up.err) status = h("div", { class: "status bad" }, ["Could not send (" + up.err.msg + "). Copy and paste into the chat: ", h("code", { text: up.err.text })]);
     mount([cfg.question ? h("p", { class: "q", text: String(cfg.question) }) : null, drop, input, tiles,
       up.sent ? null : h("div", { class: "row" }, [sendBtn]), status]);
   }
@@ -568,7 +568,7 @@ button.primary:disabled { opacity: 1; }
   function renderResult() {
     var s = sc();
     if (!s || !Array.isArray(s.results)) {
-      if (data.args && data.args.task_ids) mount([h("div", { class: "loading", text: "Pobieranie wyników " + data.args.task_ids.length + " zadań…" })]);
+      if (data.args && data.args.task_ids) mount([h("div", { class: "loading", text: "Loading results for " + data.args.task_ids.length + " task(s)…" })]);
       return;
     }
     var cards = [];
@@ -583,9 +583,9 @@ button.primary:disabled { opacity: 1; }
             mediaEl(it.url, it.kind, tag),
             h("div", { class: "label", text: (r.api_type ? r.api_type + " · " : "") + r.task_id }),
             h("div", { class: "btns" }, [
-              h("button", { text: "Pobierz", onclick: function () { download(it.url, r.task_id, it.kind); } }),
+              h("button", { text: "Download", onclick: function () { download(it.url, r.task_id, it.kind); } }),
               h("button", { class: isSent ? "primary" : "", disabled: !!res.sentRef || res.busy,
-                text: isSent ? "Wysłano" : "Użyj jako referencję",
+                text: isSent ? "Sent" : "Use as reference",
                 onclick: function () {
                   res.busy = true; renderResult();
                   sendChat(refText).then(function () { res.sentRef = refText; res.busy = false; renderResult(); })
@@ -595,8 +595,8 @@ button.primary:disabled { opacity: 1; }
           ]));
         });
       } else {
-        var label = r.status === "failed" ? "Niepowodzenie" + (r.error ? ": " + r.error : "")
-          : r.status === "completed" ? "Zakończone, brak URL wyniku" : r.status === "not_found" ? "Nie znaleziono zadania" : "W toku…";
+        var label = r.status === "failed" ? "Failed" + (r.error ? ": " + r.error : "")
+          : r.status === "completed" ? "Completed, no result URL" : r.status === "not_found" ? "Task not found" : "In progress…";
         cards.push(h("div", { class: "card" }, [
           h("div", { class: "media" }, [h("div", { class: "err", text: label })]),
           h("div", { class: "label", text: (r.api_type ? r.api_type + " · " : "") + r.task_id })
@@ -605,15 +605,15 @@ button.primary:disabled { opacity: 1; }
     });
     var waiting = s.results.filter(function (r) { return r.status === "processing" || r.status === "pending"; });
     var refresh = (waiting.length && host.caps && host.caps.serverTools) ? h("div", { class: "row" }, [
-      h("button", { disabled: res.refreshing, text: res.refreshing ? "Odświeżanie…" : "Odśwież (" + waiting.length + " w toku)",
+      h("button", { disabled: res.refreshing, text: res.refreshing ? "Refreshing…" : "Refresh (" + waiting.length + " in progress)",
         onclick: function () {
           res.refreshing = true; renderResult();
           request("tools/call", { name: "show_result", arguments: { task_ids: s.results.map(function (r) { return r.task_id; }) } }, 60000)
             .then(function (out) { if (out && out.structuredContent) data.result = out; })
             .catch(function () {}).then(function () { res.refreshing = false; renderResult(); });
         } })]) : null;
-    var status = res.sentRef ? h("div", { class: "status" }, ["Wysłano: ", h("code", { text: res.sentRef })])
-      : res.err ? h("div", { class: "status bad" }, ["Nie udało się wysłać (" + res.err.msg + "). Skopiuj i wklej do czatu: ", h("code", { text: res.err.text })]) : null;
+    var status = res.sentRef ? h("div", { class: "status" }, ["Sent: ", h("code", { text: res.sentRef })])
+      : res.err ? h("div", { class: "status bad" }, ["Could not send (" + res.err.msg + "). Copy and paste into the chat: ", h("code", { text: res.err.text })]) : null;
     mount([h("div", { class: "grid", style: { "--cols": cols(cards.length) } }, cards), refresh, status]);
   }
 
@@ -622,7 +622,7 @@ button.primary:disabled { opacity: 1; }
       if (MODE === "candidates") renderCandidates();
       else if (MODE === "upload") renderUpload();
       else if (MODE === "result") renderResult();
-    } catch (e) { showFatal("Błąd widżetu: " + (e && e.message)); }
+    } catch (e) { showFatal("Widget error: " + (e && e.message)); }
   }
 
   connect();
