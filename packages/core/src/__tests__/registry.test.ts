@@ -26,6 +26,7 @@ const EXPECTED_TOOL_NAMES = [
   "kling_avatar",
   "kling_turbo_video",
   "kling_video",
+  "kling_4_video",
   "omnihuman_video",
   "list_tasks",
   "midjourney_generate",
@@ -40,6 +41,7 @@ const EXPECTED_TOOL_NAMES = [
   "wait_for_task",
   "wan_animate",
   "wan_video",
+  "wan_3_video",
   "z_image",
 ].sort();
 
