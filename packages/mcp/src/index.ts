@@ -27,6 +27,7 @@ import {
   formatToolError,
 } from "@felores/kie-ai-core";
 import { TaskDatabase } from "@felores/kie-ai-core/database";
+import { WidgetHub } from "./widgets/index.js";
 
 class KieAiMcpServer {
   private server: Server;
@@ -35,6 +36,7 @@ class KieAiMcpServer {
   private config: KieAiConfig;
   private enabledTools: Set<string>;
   private toolContext: ToolContext;
+  private widgets: WidgetHub | null;
 
   // Utility tools are derived from the registry's `category` field, not a
   // hardcoded list, so they are always-on by definition: any tool marked
@@ -93,6 +95,9 @@ class KieAiMcpServer {
       callbackUrlFallback:
         process.env.KIE_AI_CALLBACK_URL_FALLBACK ||
         "https://proxy.kie.ai/mcp-callback",
+      ...(process.env.KIE_AI_FILE_UPLOAD_BASE_URL
+        ? { fileUploadBaseUrl: process.env.KIE_AI_FILE_UPLOAD_BASE_URL }
+        : {}),
     };
 
     if (!this.config.apiKey) {
@@ -108,6 +113,17 @@ class KieAiMcpServer {
       getCallbackUrl: (url) => this.getCallbackUrl(url),
       formatError: formatToolError,
     };
+    // MCP Apps widgets (show_candidates, media_upload_widget, show_result).
+    // Disable with KIE_MCP_WIDGETS=off.
+    this.widgets =
+      (process.env.KIE_MCP_WIDGETS || "").toLowerCase() === "off"
+        ? null
+        : new WidgetHub({
+            ctx: this.toolContext,
+            publicBaseUrl: process.env.KIE_MCP_PUBLIC_URL
+              ? process.env.KIE_MCP_PUBLIC_URL.replace(/\/+$/, "")
+              : null,
+          });
 
     this.server = this.createServer();
   }
@@ -261,12 +277,16 @@ class KieAiMcpServer {
         description: t.description,
         inputSchema: toInputJsonSchema(t.schema),
       }));
-      return { tools };
+      return { tools: [...tools, ...(this.widgets?.listTools() ?? [])] };
     });
 
     server.setRequestHandler(CallToolRequestSchema, async (request, extra) => {
       try {
         const { name, arguments: args } = request.params;
+
+        if (this.widgets?.toolNames.has(name)) {
+          return (await this.widgets.callTool(name, args)) as any;
+        }
 
         if (!this.enabledTools.has(name)) {
           throw new McpError(
@@ -371,11 +391,25 @@ class KieAiMcpServer {
         },
       ];
 
-      return { resources: [...toolResources, ...guideResources] };
+      return {
+        resources: [
+          ...toolResources,
+          ...guideResources,
+          ...(this.widgets?.listResources() ?? []),
+        ],
+      };
     });
 
     server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
       const { uri } = request.params;
+
+      if (uri.startsWith("ui://")) {
+        const ui = this.widgets?.readResource(uri);
+        if (!ui) {
+          throw new McpError(ErrorCode.InvalidParams, `Resource not found: ${uri}`);
+        }
+        return ui as any;
+      }
 
       const toolMatch = uri.match(/^kie:\/\/tools\/(.+)$/);
       if (toolMatch) {
@@ -1170,6 +1204,9 @@ These guidelines ensure optimal balance between quality requirements and cost ma
     startHttpServer({
       createServer: () => this.createServer(),
       version: KieAiMcpServer.VERSION,
+      registerRoutes: this.widgets
+        ? (app, publicBaseUrl) => this.widgets!.registerRoutes(app, publicBaseUrl)
+        : undefined,
     });
   }
 }
