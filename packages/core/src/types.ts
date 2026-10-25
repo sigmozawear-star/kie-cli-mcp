@@ -2279,6 +2279,8 @@ export interface TaskRecord {
     | "recraft-remove-background"
     | "ideogram-reframe"
     | "kling-3.0-video"
+    | "kling-4.0-video"
+    | "wan-3.0-video"
     | "kling-v3-turbo-video"
     | "hailuo"
     | "flux2-image"
