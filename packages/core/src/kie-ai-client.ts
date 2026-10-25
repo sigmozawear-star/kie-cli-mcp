@@ -389,7 +389,8 @@ export class KieAiClient {
        apiType === "happyhorse-video" ||
        apiType === "omnihuman-video" ||
        apiType === "gemini-omni-video" ||
-      apiType === "gpt-image-2" || apiType === "gpt-image-2-5"
+      apiType === "gpt-image-2" || apiType === "gpt-image-2-5" ||
+      apiType === "kling-4.0-video" || apiType === "wan-3.0-video"
     ) {
       return this.makeRequest<any>(`/jobs/recordInfo?taskId=${taskId}`, "GET");
     } else if (apiType === "runway-aleph-video") {
@@ -969,6 +970,22 @@ export class KieAiClient {
       "POST",
       jobRequest,
     );
+  }
+
+  /**
+   * Generic Kie Market job (POST /jobs/createTask) for models whose tool builds
+   * the `input` object itself (Kling 4.0, Wan 3.0, …).
+   */
+  async createMarketTask(
+    model: string,
+    input: Record<string, unknown>,
+    callBackUrl?: string,
+  ): Promise<KieAiResponse<TaskResponse>> {
+    return this.makeRequest<TaskResponse>("/jobs/createTask", "POST", {
+      model,
+      input,
+      callBackUrl: this.callbackUrl(callBackUrl),
+    });
   }
 
 async generateHappyHorseVideo(
