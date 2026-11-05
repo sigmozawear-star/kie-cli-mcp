@@ -2,7 +2,8 @@ import { z } from "zod";
 import type { ToolDef, ToolContext, ToolResult } from "./types.js";
 
 // GPT Image 2.6 (Kie Market). Model id: "gpt-image-2-6/<variant>-<mode>"
-//   variant: sunburst (detail/consistency, 1K-4K) | economy (cost-efficient, 1K only)
+//   variant: sunburst (detail/consistency, 1K-4K) | flare (fast, same params as sunburst)
+//            | economy (cost-efficient, 1K only)
 //   mode:    text-to-image (no input_urls) | image-to-image (with input_urls)
 // Docs: https://docs.kie.ai/market/gpt/gpt-image-2-6-sunburst-text-to-image (and siblings)
 
@@ -14,9 +15,11 @@ const ECONOMY_RATIOS = ["auto", "1:1", "16:9", "9:16", "3:2", "2:3", "21:9", "4:
 
 export const GptImage26Schema = z.object({
   variant: z
-    .enum(["sunburst", "economy"])
+    .enum(["sunburst", "flare", "economy"])
     .default("sunburst")
-    .describe("sunburst = highest detail, 1K/2K/4K (default); economy = cheaper, 1K only, fewer ratios/formats"),
+    .describe(
+      "sunburst = highest detail and edit consistency, 1K/2K/4K (default); flare = faster, same options as sunburst; economy = cheapest (5 credits/image), 1K only, fewer ratios/formats",
+    ),
   prompt: z.string().min(1).max(20000).describe("Text prompt (max 20000 characters)"),
   input_urls: z
     .array(z.string().url())
@@ -30,7 +33,7 @@ export const GptImage26Schema = z.object({
   resolution: z
     .enum(["1K", "2K", "4K"])
     .default("1K")
-    .describe("Sunburst: 1K (default), 2K, 4K. Economy is always 1K."),
+    .describe("Sunburst/Flare: 1K (default), 2K, 4K. Economy is always 1K."),
   background: z
     .enum(["transparent", "opaque", "auto"])
     .optional()
@@ -38,7 +41,7 @@ export const GptImage26Schema = z.object({
   output_format: z
     .enum(["png", "jpeg", "webp", "gif"])
     .optional()
-    .describe("png (default). Sunburst: png/jpeg/webp, gif only for text-to-image. Economy: png, gif only for text-to-image."),
+    .describe("png (default). Sunburst/Flare: png/jpeg/webp, gif only for text-to-image. Economy: png, gif only for text-to-image."),
   frame_count: z
     .enum(["auto", "4", "9", "16", "25", "36", "64"])
     .optional()
@@ -87,7 +90,7 @@ function buildInput(r: GptImage26Request, i2i: boolean): Record<string, unknown>
 export const gptImage26Tool: ToolDef<typeof GptImage26Schema> = {
   name: "gpt_image_2_6",
   description:
-    "Generate images with OpenAI GPT Image 2.6 on Kie: text-to-image, or image-to-image with up to 16 reference images. variant=sunburst (default, highest detail, 1K/2K/4K, 16 aspect ratios, transparent background at 1K, animated GIF for text-to-image) or variant=economy (cheaper, 1K only).",
+    "Generate images with OpenAI GPT Image 2.6 on Kie: text-to-image, or image-to-image with up to 16 reference images. variant=sunburst (default, highest detail, 1K/2K/4K, 16 aspect ratios, transparent background at 1K, animated GIF for text-to-image), variant=flare (faster, same options) or variant=economy (5 credits/image, 1K only). Sunburst/Flare are billed per token (image output 5400 credits per 1M tokens).",
   category: "image",
   schema: GptImage26Schema,
   async run(args, ctx: ToolContext): Promise<ToolResult> {
@@ -131,7 +134,7 @@ export const gptImage26Tool: ToolDef<typeof GptImage26Schema> = {
       };
     } catch (error) {
       return ctx.formatError("gpt_image_2_6", error, {
-        variant: "sunburst (default) or economy",
+        variant: "sunburst (default), flare or economy",
         prompt: "Required, max 20000 chars",
         input_urls: "Optional: up to 16 image URLs for image-to-image",
         aspect_ratio: "auto (default), 1:1, 3:2, 2:3, 4:3, 3:4, 5:4, 4:5, 16:9, 9:16, 2:1, 1:2, 21:9, 9:21, 3:1, 1:3 (economy: subset)",
