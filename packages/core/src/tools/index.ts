@@ -8,6 +8,7 @@ import { fluxKontextImageTool } from "./flux_kontext_image.js";
 import { getTaskStatusTool } from "./get_task_status.js";
 import { gptImage2Tool } from "./gpt_image_2.js";
 import { gptImage25Tool } from "./gpt_image_2_5.js";
+import { gptImage26Tool } from "./gpt_image_2_6.js";
 import { geminiOmniTool } from "./gemini_omni.js";
 import { grokImagineTool } from "./grok_imagine.js";
 import { grokImagineVideo15Tool } from "./grok_imagine_video_15.js";
@@ -54,6 +55,7 @@ export const TOOL_REGISTRY: ToolDef[] = [
   geminiOmniTool,
   gptImage2Tool,
   gptImage25Tool,
+  gptImage26Tool,
   grokImagineTool,
   grokImagineVideo15Tool,
   hailuoVideoTool,
