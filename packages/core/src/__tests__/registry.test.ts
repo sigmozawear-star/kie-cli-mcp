@@ -16,6 +16,7 @@ const EXPECTED_TOOL_NAMES = [
   "get_task_status",
   "gpt_image_2",
   "gpt_image_2_5",
+  "gpt_image_2_6",
   "gemini_omni",
   "grok_imagine",
   "grok_imagine_video_15",
