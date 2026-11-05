@@ -2274,7 +2274,7 @@ export interface TaskRecord {
     | "bytedance-seedream-image"
     | "qwen-image"
     | "midjourney"
-    | "gpt-image-2" | "gpt-image-2-5"
+    | "gpt-image-2" | "gpt-image-2-5" | "gpt-image-2-6"
     | "flux-kontext-image"
     | "recraft-remove-background"
     | "ideogram-reframe"
