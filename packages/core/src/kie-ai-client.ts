@@ -389,7 +389,7 @@ export class KieAiClient {
        apiType === "happyhorse-video" ||
        apiType === "omnihuman-video" ||
        apiType === "gemini-omni-video" ||
-      apiType === "gpt-image-2" || apiType === "gpt-image-2-5" ||
+      apiType === "gpt-image-2" || apiType === "gpt-image-2-5" || apiType === "gpt-image-2-6" ||
       apiType === "kling-4.0-video" || apiType === "wan-3.0-video"
     ) {
       return this.makeRequest<any>(`/jobs/recordInfo?taskId=${taskId}`, "GET");
