@@ -312,6 +312,16 @@ export class KieAiClient {
       !!request.image_input && request.image_input.length > 0;
 
     const isLite = request.model === "nano-banana-2-lite";
+    const isPro = request.model === "nano-banana-pro";
+    if (isPro) {
+      if (request.image_input && request.image_input.length > 8) {
+        throw new Error("Nano Banana Pro supports at most 8 reference images");
+      }
+      const proRatios = ["1:1", "2:3", "3:2", "3:4", "4:3", "4:5", "5:4", "9:16", "16:9", "21:9", "auto"];
+      if (request.aspect_ratio && !proRatios.includes(request.aspect_ratio)) {
+        throw new Error(`Nano Banana Pro aspect_ratio must be one of: ${proRatios.join(", ")}`);
+      }
+    }
     const input: any = {
       prompt: request.prompt,
       ...(request.aspect_ratio && { aspect_ratio: request.aspect_ratio }),
@@ -328,9 +338,9 @@ export class KieAiClient {
       } else {
         input.image_input = [];
       }
-      if (request.output_format) input.output_format = request.output_format;
+      if (request.output_format || isPro) input.output_format = request.output_format || "png";
       if (request.resolution) input.resolution = request.resolution;
-      if (request.google_search) input.google_search = true;
+      if (request.google_search && !isPro) input.google_search = true;
     }
 
     const jobRequest = {
@@ -389,6 +399,7 @@ export class KieAiClient {
        apiType === "happyhorse-video" ||
        apiType === "omnihuman-video" ||
        apiType === "gemini-omni-video" ||
+       apiType === "gemini-omni-flash-1-2" ||
       apiType === "gpt-image-2" || apiType === "gpt-image-2-5" || apiType === "gpt-image-2-6" ||
       apiType === "kling-4.0-video" || apiType === "wan-3.0-video"
     ) {
