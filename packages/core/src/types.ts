@@ -5,11 +5,11 @@ import { z } from "zod";
 export const NanoBananaImageSchema = z
   .object({
     model: z
-      .enum(["nano-banana-2", "nano-banana-2-lite", "nano-banana-2-1"])
+      .enum(["nano-banana-2", "nano-banana-2-lite", "nano-banana-2-1", "nano-banana-pro"])
       .default("nano-banana-2")
       .optional()
       .describe(
-        "Nano Banana model: nano-banana-2 supports up to 4K and 14 references; nano-banana-2-lite is the faster 1K model with up to 10 references; nano-banana-2-1 is the newest model (stronger subject consistency and mask-style edits), up to 4K and 10 references",
+        "Nano Banana model: nano-banana-2 supports up to 4K and 14 references; nano-banana-2-lite is the faster 1K model with up to 10 references; nano-banana-2-1 is the newest model (stronger subject consistency and mask-style edits), up to 4K and 10 references; nano-banana-pro is Nano Banana Pro (1K/2K/4K, up to 8 references, ratios 1:1, 2:3, 3:2, 3:4, 4:3, 4:5, 5:4, 9:16, 16:9, 21:9, auto; no Google Search)",
       ),
     // Text-to-image parameters
     prompt: z
@@ -2293,7 +2293,8 @@ export interface TaskRecord {
     | "topaz-upscale"
     | "happyhorse-video"
     | "omnihuman-video"
-    | "gemini-omni-video";
+    | "gemini-omni-video"
+    | "gemini-omni-flash-1-2";
   status: "pending" | "processing" | "completed" | "failed";
   created_at: string;
   updated_at: string;
