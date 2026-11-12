@@ -18,6 +18,7 @@ const EXPECTED_TOOL_NAMES = [
   "gpt_image_2_5",
   "gpt_image_2_6",
   "gemini_omni",
+  "gemini_omni_flash_1_2",
   "grok_imagine",
   "grok_imagine_video_15",
   "hailuo_video",
