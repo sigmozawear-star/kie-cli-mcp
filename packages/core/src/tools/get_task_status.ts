@@ -253,6 +253,7 @@ export const getTaskStatusTool: ToolDef<typeof GetTaskStatusSchema> = {
           "bytedance-seedance-video",
           "wan-video",
           "happyhorse-video",
+          "gemini-omni-flash-1-2",
           "hailuo",
           "runway-aleph-video",
         ];
